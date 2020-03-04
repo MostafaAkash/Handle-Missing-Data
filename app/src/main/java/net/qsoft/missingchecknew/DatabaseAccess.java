@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.ContactsContract;
 
 import java.util.ArrayList;
 
@@ -93,11 +94,71 @@ public class DatabaseAccess {
         //return buffer.toString();
         return surveyQuestions;
     }
-
-    public ArrayList<ActualQuestion>  getActualQuestionData(int sectionId)
+    public String getServayOrgMem()
     {
         cursor = null;
-        cursor = database.rawQuery(DatabaseEntry.ACTUAL_QUESTION_INFO,new String[]{String.valueOf(sectionId)});
+        cursor = database.rawQuery("select "+DatabaseEntry.SURVEY_ORG_NO+" from "+DatabaseEntry.TABLE_SURVEY+" where "+ DatabaseEntry.RESPONDENTS_ORGMEM_NO+ " IN"+"('000394','000083')",null);
+
+        String data = "";
+        while (cursor.moveToNext())
+        {
+            String s = cursor.getString(0);
+            if(s!=null)
+            data = data + s+"   "+s.length()+"\n";
+        }
+        return data;
+    }
+
+    public ArrayList<SurveyQuestion> getSurveyQuestionDataForRespondentsMember(int eventId,int sectionId,String first,String second)
+    {
+        // +DatabaseEntry.SURVEY_ORG_NO +" IN "+first+" AND "
+        cursor = null;
+        cursor = database.rawQuery("select "+DatabaseEntry.SURVEY_EVENT_ID
+                +","+DatabaseEntry.SURVEY_SECTION_ID
+                +","+DatabaseEntry.SURVEY_SUBSECTION_ID
+                +","+DatabaseEntry.SURVEY_ID_QUESTION
+                +","+DatabaseEntry.SURVEY_ORG_NO
+                +","+DatabaseEntry.SURVEY_MONITOR_NO +" from "+DatabaseEntry.TABLE_SURVEY+" where ("+DatabaseEntry.SURVEY_EVENT_ID+"=? AND "+
+                DatabaseEntry.SURVEY_SECTION_ID+"=? AND "
+                        +DatabaseEntry.SURVEY_ORG_NO +" IN "+first+" AND "
+                +DatabaseEntry.SURVEY_ORG_MEM_NO+" IN "+second+")",
+                new String[]{String.valueOf(eventId),String.valueOf(sectionId)});
+
+        int indexOne = cursor.getColumnIndex(DatabaseEntry.SURVEY_EVENT_ID);
+        int indexTwo = cursor.getColumnIndex(DatabaseEntry.SURVEY_SECTION_ID);
+        int indexThree = cursor.getColumnIndex(DatabaseEntry.SURVEY_SUBSECTION_ID);
+        int indexFour = cursor.getColumnIndex(DatabaseEntry.SURVEY_ID_QUESTION);
+        int indexFive = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_NO);
+        int indexSix = cursor.getColumnIndex(DatabaseEntry.SURVEY_MONITOR_NO);
+
+        //StringBuffer buffer = new StringBuffer();
+
+        ArrayList<SurveyQuestion>surveyQuestions = new ArrayList<>();
+
+        while (cursor.moveToNext())
+        {
+            int eventIdExtra = cursor.getInt(indexOne);
+            int sectionIdExtra = cursor.getInt(indexTwo);
+            String subSectionId = cursor.getString(indexThree);
+            int quesId = cursor.getInt(indexFour);
+            String orgNo = cursor.getString(indexFive);
+            String monitorNoExtra = cursor.getString(indexSix);
+
+            //  buffer.append(eventId+"  "+sectionId+"  "+subSectionId+"  "+orgNo+"\n");
+            surveyQuestions.add(new SurveyQuestion(eventIdExtra,sectionIdExtra,subSectionId,orgNo,monitorNoExtra,quesId));
+
+        }
+
+        //return buffer.toString();
+        return surveyQuestions;
+    }
+
+
+
+    public ArrayList<ActualQuestion>  getActualQuestionData()
+    {
+        cursor = null;
+        cursor = database.rawQuery(DatabaseEntry.ACTUAL_QUESTION_INFO,null);
 
         int indexOne = cursor.getColumnIndex(DatabaseEntry.QUESTION_SECTION_NO);
         int indexTwo = cursor.getColumnIndex(DatabaseEntry.QUESTION_SUBSECTION_ID);
@@ -126,7 +187,27 @@ public class DatabaseAccess {
         cursor = database.rawQuery(DatabaseEntry.FIND_UNIQUE_MEMBER_FROM_SECTION_TWO,new String[]{String.valueOf(eventId),String.valueOf(sectionId)});
        // int indexOne = cursor.getColumnIndex(DatabaseEntry.SURVEY_ID);
         int indexTwo = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_NO);
-        int indexThree = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORGMEM_NO);
+        int indexThree = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_MEM_NO);
+        ArrayList<OrgMem> orgMems = new ArrayList<>();
+        while (cursor.moveToNext())
+        {
+            //int id = cursor.getInt(indexOne);
+            String orgNO = cursor.getString(indexTwo);
+            String memNo = cursor.getString(indexThree);
+            orgMems.add(new OrgMem(orgNO,memNo));
+        }
+
+        return orgMems;
+
+    }
+
+    public ArrayList<OrgMem> getMemberFromRespondents(int eventId,int sectionId)
+    {
+        cursor = null;
+        cursor = database.rawQuery(DatabaseEntry.FIND_UNIQUE_MEMBER_FROM_RESPONDENTS_USING_SECTION,new String[]{String.valueOf(eventId),String.valueOf(sectionId)});
+        // int indexOne = cursor.getColumnIndex(DatabaseEntry.SURVEY_ID);
+        int indexTwo = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_NO);
+        int indexThree = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_MEM_NO);
         ArrayList<OrgMem> orgMems = new ArrayList<>();
         while (cursor.moveToNext())
         {
@@ -170,7 +251,7 @@ public class DatabaseAccess {
         private static final String SURVEY_SECTION_ID = "SectionId";
         private static final String SURVEY_SUBSECTION_ID = "SubSectionId";
         private static final String SURVEY_ORG_NO = "OrgNo";
-        private static final String SURVEY_ORGMEM_NO = "OrgMemNo";
+        private static final String SURVEY_ORG_MEM_NO = "OrgMemNo";
         private static final String SURVEY_ID_QUESTION = "Question";
         private static final String SURVEY_ANSWER = "Answer";
         private static final String SURVEY_SCORE = "Score";
@@ -202,17 +283,28 @@ public class DatabaseAccess {
         private static final String ACTUAL_QUESTION_INFO = "select "+QUESTION_SECTION_NO
                 +","+QUESTION_SUBSECTION_ID
                 +","+QUESTION_QUESTION_NO
-                +","+QUESTION_CHECK_FIELD+" from "+TABLE_QUESTION+" where "+QUESTION_SECTION_NO+"=?";
+                +","+QUESTION_CHECK_FIELD+" from "+TABLE_QUESTION;
 
         private static final String FIND_UNIQUE_MEMBER_FROM_SECTION_TWO = "SELECT DISTINCT "+
                 SURVEY_ORG_NO
-                +","+SURVEY_ORGMEM_NO
+                +","+ SURVEY_ORG_MEM_NO
                 +" FROM "+TABLE_SURVEY +" WHERE "+SURVEY_EVENT_ID+"=? AND "+SURVEY_SECTION_ID+"=? AND "+SURVEY_ID_QUESTION+" IS NOT NULL";
 
+        private static final String FIND_UNIQUE_MEMBER_FROM_RESPONDENTS_USING_SECTION = "SELECT DISTINCT "+
+                RESPONDENTS_ORG_NO
+                +","+RESPONDENTS_ORGMEM_NO
+                +" FROM "+TABLE_RESPONDENTS +" WHERE "+RESPONDENTS_EVENT_ID+"=? AND "+RESPONDENTS_SECTION_ID+"=? AND ("+RESPONDENTS_ORGMEM_NO+" IS NOT NULL AND LENGTH(TRIM("
+                +RESPONDENTS_ORGMEM_NO+"))>0)";
+
+        private static final String SURVEY_QUESTION_INFO_USING_RESPONDENTS_MEMBER = "select "+SURVEY_EVENT_ID
+                +","+SURVEY_SECTION_ID
+                +","+SURVEY_SUBSECTION_ID
+                +","+SURVEY_ID_QUESTION
+                +","+SURVEY_ORG_NO
+                +","+SURVEY_MONITOR_NO +" from "+TABLE_SURVEY+" where "+SURVEY_EVENT_ID+"=? AND "+
+                SURVEY_SECTION_ID+"=? AND "+SURVEY_ORG_NO+" IN (?)";
 
     }
-
-
 
 
 }
