@@ -5,21 +5,24 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
     private DatabaseAccess databaseAccess;
     private AlertDialog dialog;
     private ArrayList<ActualQuestion> actualQuestionArrayList;
+    private ArrayList<SurveyQuestion> sectionWiseSurveyQuesList;
+    private ArrayList<SectionReport> sectionReports;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sectionWiseSurveyQuesList = new ArrayList<>();
+        sectionReports = new ArrayList<>();
+
         databaseAccess =DatabaseAccess.getInstance(this);
         databaseAccess.open();
         loadAllActualQuestion();
@@ -37,12 +40,17 @@ public class MainActivity extends AppCompatActivity {
         int eventId,sectionId,monitorNo;
         eventId=1;
         sectionId=1;
-       // monitorNo=2;
-       // callFirstSection(eventId,sectionId,monitorNo);
 
-        callSecondSection(eventId,sectionId);
-       // String data = databaseAccess.getServayOrgMem();
-        //createDialog(data);
+        callSection(eventId,sectionId);
+
+        eventId=1;
+        sectionId=3;
+
+        callSection(eventId,sectionId);
+
+
+
+
 
 
         databaseAccess.close();
@@ -67,13 +75,23 @@ public class MainActivity extends AppCompatActivity {
         return actQuesSecWise;
     }
 
-    private void callSecondSection(int eventId, int sectionId) {
+    private void callSection(int eventId, int sectionId) {
       ArrayList<OrgMem>orgMems = databaseAccess.getMemberFromRespondents(eventId,sectionId);
 
       StringBuffer firstParam = new StringBuffer();
       StringBuffer secondParam = new StringBuffer();
 
       String data= "";
+      if(orgMems!=null)
+      {
+          data = data + "Number of members: "+orgMems.size()+"\n";
+      }
+      else
+      {
+          createDialog("Something went wrong");
+          return;
+      }
+
       for(int i=0;i<orgMems.size();i++)
       {
           data = data +orgMems.get(i).getOrgNumber()+"    "+orgMems.get(i).getOrgMemberNumber()+"\n";
@@ -90,10 +108,11 @@ public class MainActivity extends AppCompatActivity {
 
 
       }
-      createDialog(data);
+      data = data +"\n";
+      //createDialog(data);
 
       ArrayList<ActualQuestion>actualQuestions = getActualQuestionDataUsingSection(sectionId);
-      showActualQuestionData(actualQuestions);
+      //showActualQuestionData(actualQuestions);
 
 
 
@@ -103,14 +122,76 @@ public class MainActivity extends AppCompatActivity {
         secondParam.insert(secondParam.length(),")");
         createDialog(firstParam.toString());
         createDialog(secondParam.toString());
-        String st1 = firstParam.toString();
-        String st2 = secondParam.toString();
+        String mOrgNumbers = firstParam.toString();
+        String mOrgMemNumbers= secondParam.toString();
 
-
-        ArrayList<SurveyQuestion> surveyQuestions = databaseAccess.getSurveyQuestionDataForRespondentsMember(eventId,sectionId,st1,st2);
-        showSurveyQuestionData(surveyQuestions);
+        loadSurveyQuestionBySection(eventId,sectionId,mOrgNumbers,mOrgMemNumbers);
+        //showSurveyQuestionData(surveyQuestions);
 
         //showMissingMandatoryQuestionUsingSection(surveyQuestions,actualQuestions);
+        //data="";
+        int countMisQuestion = 0;
+        for(OrgMem orgMem:orgMems)
+        {
+            ArrayList<SurveyQuestion> surQuesMemWise = getSurveyQuestionOfSpecificMember(orgMem);
+
+            ArrayList<ActualQuestion> missQuesList = getMissingMandatoryQuestionUsingSection(surQuesMemWise,actualQuestions);
+
+            showSurveyQuestionData(surQuesMemWise);
+            showActualQuestionData(missQuesList);
+
+            if(missQuesList!=null)
+            {
+                data = data + orgMem.getOrgNumber()+"    "+orgMem.getOrgMemberNumber()+"     "+missQuesList.size()+"\n";
+                for(ActualQuestion misQuestion: missQuesList)
+                {
+                    data = data + misQuestion.getSectionId()+"     "+misQuestion.getSubSectionId()+"     "+misQuestion.getQuestionNo()+"\n\n";
+                }
+                countMisQuestion = countMisQuestion + missQuesList.size();
+            }
+
+
+        }
+        createDialog(data);
+
+        switch (sectionId)
+        {
+            case 1:
+                sectionReports.add(new SectionReport(countMisQuestion,data));
+                return;
+                //break;
+            case 2:
+
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            case 5:
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    private void loadSurveyQuestionBySection(int eventId, int sectionId, String mOrgNumbers, String mOrgMemNumbers) {
+        sectionWiseSurveyQuesList.clear();
+        sectionWiseSurveyQuesList = databaseAccess.getSurveyQuestionDataForRespondentsMember(eventId,sectionId,mOrgNumbers,mOrgMemNumbers);
+        //showSurveyQuestionData(sectionWiseSurveyQuesList);
+    }
+
+    private ArrayList<SurveyQuestion> getSurveyQuestionOfSpecificMember(OrgMem orgMem)
+    {
+        ArrayList<SurveyQuestion> surQuesMemWise  = new ArrayList<>();
+        for(SurveyQuestion surveyQuestion:sectionWiseSurveyQuesList)
+        {
+            if(surveyQuestion.getOrgNo().equals(orgMem.getOrgNumber()) && surveyQuestion.getOrgMemNumber().equals(orgMem.getOrgMemberNumber()))
+            {
+                surQuesMemWise.add(surveyQuestion);
+            }
+        }
+        return surQuesMemWise;
 
     }
 
@@ -121,12 +202,12 @@ public class MainActivity extends AppCompatActivity {
          ArrayList<ActualQuestion>actualQuestions = getActualQuestionDataUsingSection(sectionId);
          showActualQuestionData(actualQuestions);
 
-         showMissingMandatoryQuestionUsingSection(surveyQuestions,actualQuestions);
+         //showMissingMandatoryQuestionUsingSection(surveyQuestions,actualQuestions);
 
     }
 
-    private void showMissingMandatoryQuestionUsingSection(ArrayList<SurveyQuestion>surveyQuestions,ArrayList<ActualQuestion>actualQuestions)   {
-        ArrayList<Integer>mandMissQuesId = new ArrayList<>();
+    private ArrayList<ActualQuestion> getMissingMandatoryQuestionUsingSection(ArrayList<SurveyQuestion>surveyQuestions,ArrayList<ActualQuestion>actualQuestions)   {
+        ArrayList<ActualQuestion>mandMissQuesList= new ArrayList<>();
         for(int i=0;i<actualQuestions.size();i++)
         {
             if(actualQuestions.get(i).getIsMandatory()==1)
@@ -144,11 +225,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if(flag==false)
                 {
-                    mandMissQuesId.add(i);
+                   // mandMissQuesId.add(i);
+                    mandMissQuesList.add(actualQuestions.get(i));
                 }
             }
         }
-
+/*
         String data="";
         for(int i=0;i<mandMissQuesId.size();i++)
         {
@@ -158,13 +240,14 @@ public class MainActivity extends AppCompatActivity {
                     +"   "+actualQuestions.get(index).getQuestionNo()
                     +"\n\n";
         }
-        createDialog(data);
+        createDialog(data);*/
+       return mandMissQuesList;
 
     }
 
     public void showSurveyQuestionData(ArrayList<SurveyQuestion>surveyQuestions)
     {
-        String data = "";
+        String data = "Survey ";
         for(SurveyQuestion surveyQuestion:surveyQuestions)
         {
             data = data + surveyQuestion.getEventId()+" "+
@@ -174,20 +257,19 @@ public class MainActivity extends AppCompatActivity {
                     surveyQuestion.getMonitorNo()+"\n\n";
 
         }
-        createDialog(data);
+        //createDialog(data);
     }
 
     public void showActualQuestionData(ArrayList<ActualQuestion>actualQuestions)
     {
-        String data = "";
-        data = "";
+        String data = "Actual ";
         for(ActualQuestion actualQuestion:actualQuestions)
         {
             data = data + actualQuestion.getSectionId()+"   "+
                     actualQuestion.getSubSectionId()+"   "+
                     actualQuestion.getQuestionNo()+"\n\n";
         }
-        createDialog(data);
+       // createDialog(data);
     }
 
     private void showMissingMandatoryQuestionUsingEvent() {

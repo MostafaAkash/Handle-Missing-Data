@@ -118,6 +118,7 @@ public class DatabaseAccess {
                 +","+DatabaseEntry.SURVEY_SUBSECTION_ID
                 +","+DatabaseEntry.SURVEY_ID_QUESTION
                 +","+DatabaseEntry.SURVEY_ORG_NO
+                +","+DatabaseEntry.SURVEY_ORG_MEM_NO
                 +","+DatabaseEntry.SURVEY_MONITOR_NO +" from "+DatabaseEntry.TABLE_SURVEY+" where ("+DatabaseEntry.SURVEY_EVENT_ID+"=? AND "+
                 DatabaseEntry.SURVEY_SECTION_ID+"=? AND "
                         +DatabaseEntry.SURVEY_ORG_NO +" IN "+first+" AND "
@@ -130,6 +131,7 @@ public class DatabaseAccess {
         int indexFour = cursor.getColumnIndex(DatabaseEntry.SURVEY_ID_QUESTION);
         int indexFive = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_NO);
         int indexSix = cursor.getColumnIndex(DatabaseEntry.SURVEY_MONITOR_NO);
+        int indexSeven = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_MEM_NO);
 
         //StringBuffer buffer = new StringBuffer();
 
@@ -143,9 +145,10 @@ public class DatabaseAccess {
             int quesId = cursor.getInt(indexFour);
             String orgNo = cursor.getString(indexFive);
             String monitorNoExtra = cursor.getString(indexSix);
+            String orgMemNumber = cursor.getString(indexSeven);
 
             //  buffer.append(eventId+"  "+sectionId+"  "+subSectionId+"  "+orgNo+"\n");
-            surveyQuestions.add(new SurveyQuestion(eventIdExtra,sectionIdExtra,subSectionId,orgNo,monitorNoExtra,quesId));
+            surveyQuestions.add(new SurveyQuestion(eventIdExtra,sectionIdExtra,subSectionId,orgNo,monitorNoExtra,quesId,orgMemNumber));
 
         }
 
