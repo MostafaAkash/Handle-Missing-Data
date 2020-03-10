@@ -224,6 +224,26 @@ public class DatabaseAccess {
 
     }
 
+    public ArrayList<OrgMem> getMemberFromRespondentsUsingSectionAndSubSection(int eventId,int sectionId,int subSectionId)
+    {
+        cursor = null;
+        cursor = database.rawQuery(DatabaseEntry.FIND_UNIQUE_MEMBER_FROM_RESPONDENTS_USING_SECTION_SUB_SECTION,new String[]{String.valueOf(eventId),String.valueOf(sectionId),String.valueOf(subSectionId)});
+        // int indexOne = cursor.getColumnIndex(DatabaseEntry.SURVEY_ID);
+        int indexTwo = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_NO);
+        int indexThree = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_MEM_NO);
+        ArrayList<OrgMem> orgMems = new ArrayList<>();
+        while (cursor.moveToNext())
+        {
+            //int id = cursor.getInt(indexOne);
+            String orgNO = cursor.getString(indexTwo);
+            String memNo = cursor.getString(indexThree);
+            orgMems.add(new OrgMem(orgNO,memNo));
+        }
+
+        return orgMems;
+
+    }
+
 
 
     private static class DatabaseEntry
@@ -297,6 +317,13 @@ public class DatabaseAccess {
                 RESPONDENTS_ORG_NO
                 +","+RESPONDENTS_ORGMEM_NO
                 +" FROM "+TABLE_RESPONDENTS +" WHERE "+RESPONDENTS_EVENT_ID+"=? AND "+RESPONDENTS_SECTION_ID+"=? AND ("+RESPONDENTS_ORGMEM_NO+" IS NOT NULL AND LENGTH(TRIM("
+                +RESPONDENTS_ORGMEM_NO+"))>0)";
+        private static final String FIND_UNIQUE_MEMBER_FROM_RESPONDENTS_USING_SECTION_SUB_SECTION= "SELECT DISTINCT "+
+                RESPONDENTS_ORG_NO
+                +","+RESPONDENTS_ORGMEM_NO
+                +" FROM "+TABLE_RESPONDENTS
+                + " WHERE "+RESPONDENTS_EVENT_ID+"=? AND "+RESPONDENTS_SECTION_ID
+                +"=? AND "+RESPONDENTS_SUBSECTION_ID+"=?" +" AND ("+RESPONDENTS_ORGMEM_NO+" IS NOT NULL AND LENGTH(TRIM("
                 +RESPONDENTS_ORGMEM_NO+"))>0)";
 
         private static final String SURVEY_QUESTION_INFO_USING_RESPONDENTS_MEMBER = "select "+SURVEY_EVENT_ID
