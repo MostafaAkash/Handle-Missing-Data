@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         //()
         int eventId,sectionId,monitorNo;
         eventId=1;
-        sectionId=1;
+        sectionId=3;
         goSection(eventId,sectionId);
 
         //callSection(eventId,sectionId);
@@ -110,18 +110,19 @@ public class MainActivity extends AppCompatActivity {
     }
     private void goSection(int eventId,int sectionId)
     {
-        ArrayList<OrgMem>orgMembers;
+        ArrayList<OrgMem>orgMemSecOne;
         ArrayList<Respondents>subRespondents;
         String[] orgWithMembers;
+        String data = "";
         switch (sectionId)
         {
 
             case 1:
-                orgMembers = databaseAccess.getMemberFromRespondents(eventId,sectionId);
+                orgMemSecOne = databaseAccess.getMemberFromRespondents(eventId,sectionId);
                 subRespondents = new ArrayList<>();
-                subRespondents.add(new Respondents(1,5,orgMembers));
+                subRespondents.add(new Respondents(1,5,orgMemSecOne));
                 sectionWiseRespondents[sectionId-1].setSubRespondentList(subRespondents);
-                orgWithMembers = getMembersAndOrgInStringFormat(orgMembers);
+                orgWithMembers = getMembersAndOrgInStringFormat(orgMemSecOne);
                 loadSurveyQuestionBySection(eventId,sectionId,orgWithMembers[0],orgWithMembers[1]);
                 break;
 
@@ -148,8 +149,24 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case 3:
+                ArrayList<OrgMem>orgMemSecThreeSubFour = databaseAccess.getMemberFromRespondentsUsingSectionAndSubSection(eventId,sectionId,3);
+                subRespondents = new ArrayList<>();
+                subRespondents.add(new Respondents(3,5,orgMemSecThreeSubFour));
+                subRespondents.add(new Respondents(4,5,orgMemSecThreeSubFour));
+                subRespondents.add(new Respondents(5,5,orgMemSecThreeSubFour));
+                orgMemSecOne = databaseAccess.getMemberFromRespondents(eventId,1);
+                subRespondents.add(new Respondents(8,5,orgMemSecOne));
+
+                ArrayList<OrgMem>allMembersOfSecThree = new ArrayList<>();
+                allMembersOfSecThree.addAll(orgMemSecOne);
+                allMembersOfSecThree.addAll(orgMemSecThreeSubFour);
+
+                orgWithMembers = getMembersAndOrgInStringFormat(allMembersOfSecThree);
+                loadSurveyQuestionBySection(eventId,sectionId,orgWithMembers[0],orgWithMembers[1]);
+                sectionWiseRespondents[sectionId-1].setSubRespondentList(subRespondents);
 
                 break;
+
             case 4:
                 break;
             case 5:
@@ -160,9 +177,10 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<Respondents>subSecRespondents =sectionWiseRespondents[sectionId-1].getSubRespondentList();
 
-        String data = "";
+
         for(int i=0;i<subSecRespondents.size();i++)
         {
+
             Respondents respondents = subSecRespondents.get(i);
 
             data = data + "SectionId: "+ sectionId +"     SubsectionId: "+respondents.getSubSectionNo()+"\n";
@@ -194,9 +212,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
             data = data +"\n";
-
-
-
 
 
         }
