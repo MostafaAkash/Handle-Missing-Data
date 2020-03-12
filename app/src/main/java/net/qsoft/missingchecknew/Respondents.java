@@ -13,6 +13,10 @@ public class Respondents {
         this.respondentMembers = respondentMembers;
     }
 
+    public Respondents() {
+        respondentMembers = new ArrayList<>();
+    }
+
     public int getSubSectionNo() {
         return subSectionNo;
     }

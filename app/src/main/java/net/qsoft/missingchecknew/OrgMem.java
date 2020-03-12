@@ -13,6 +13,9 @@ public class OrgMem {
         this.id = id;
     }
 
+    public OrgMem() {
+    }
+
     public OrgMem(String orgNumber, String orgMemberNumber) {
         this.orgNumber = orgNumber;
         this.orgMemberNumber = orgMemberNumber;

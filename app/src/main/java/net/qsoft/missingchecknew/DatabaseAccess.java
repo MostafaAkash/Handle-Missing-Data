@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.strictmode.CredentialProtectedWhileLockedViolation;
 import android.provider.ContactsContract;
 
 import java.util.ArrayList;
@@ -61,10 +62,10 @@ public class DatabaseAccess {
         return buffer.toString();
     }
 
-    public ArrayList<SurveyQuestion> getSurveyQuestionData(int eventId,int sectionId,int monitorNo)
+    public ArrayList<SurveyQuestion> getSurveyQuestionDataBySectionAndSubSectoin(int eventId,int sectionId,int subSection)
     {
         cursor = null;
-        cursor = database.rawQuery(DatabaseEntry.SURVEY_QUESTION_INFO,new String[]{String.valueOf(eventId),String.valueOf(sectionId),String.valueOf(monitorNo)});
+        cursor = database.rawQuery(DatabaseEntry.SURVEY_QUESTION_INFO,new String[]{String.valueOf(eventId),String.valueOf(sectionId),String.valueOf(subSection)});
 
         int indexOne = cursor.getColumnIndex(DatabaseEntry.SURVEY_EVENT_ID);
         int indexTwo = cursor.getColumnIndex(DatabaseEntry.SURVEY_SECTION_ID);
@@ -244,6 +245,23 @@ public class DatabaseAccess {
 
     }
 
+    public ArrayList<String> getUniqueVONumbersFromRespondents(int eventId,int sectionId)
+    {
+        cursor = null;
+        cursor = database.rawQuery(DatabaseEntry.FIND_UNIQUE_ORGANIZATION_VO,new String[]{String.valueOf(eventId),String.valueOf(sectionId)});
+        int indexOne = cursor.getColumnIndex(DatabaseEntry.RESPONDENTS_ORG_NO);
+        ArrayList<String> orgNumbers = new ArrayList<>();
+
+        while (cursor.moveToNext())
+        {
+            String orgNo = cursor.getString(indexOne);
+            orgNumbers.add(orgNo);
+        }
+
+        return orgNumbers;
+
+    }
+
 
 
     private static class DatabaseEntry
@@ -333,6 +351,11 @@ public class DatabaseAccess {
                 +","+SURVEY_ORG_NO
                 +","+SURVEY_MONITOR_NO +" from "+TABLE_SURVEY+" where "+SURVEY_EVENT_ID+"=? AND "+
                 SURVEY_SECTION_ID+"=? AND "+SURVEY_ORG_NO+" IN (?)";
+        private static final String FIND_UNIQUE_ORGANIZATION_VO = "SELECT DISTINCT "+
+                RESPONDENTS_ORG_NO
+                +" FROM "+TABLE_RESPONDENTS +" WHERE "+RESPONDENTS_EVENT_ID+"=? AND "+RESPONDENTS_SECTION_ID+"=? AND ("+RESPONDENTS_ORG_NO+" IS NOT NULL AND LENGTH(TRIM("
+                +RESPONDENTS_ORG_NO+"))>0)";
+
 
     }
 

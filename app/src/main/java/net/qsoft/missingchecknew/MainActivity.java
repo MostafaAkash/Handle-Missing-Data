@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 /*package net.qsoft.missingchecknew;
@@ -50,9 +51,10 @@ public class MainActivity extends AppCompatActivity {
 
         // showMissingMandatoryQuestionUsingEvent();
         //()
+
         int eventId,sectionId,monitorNo;
         eventId=1;
-        sectionId=3;
+        sectionId=4;
         goSection(eventId,sectionId);
 
         //callSection(eventId,sectionId);
@@ -61,9 +63,6 @@ public class MainActivity extends AppCompatActivity {
         //sectionId=3;
 
         //callSection(eventId,sectionId);
-
-
-
 
 
 
@@ -168,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case 4:
+
                 break;
             case 5:
                 break;
@@ -211,17 +211,65 @@ public class MainActivity extends AppCompatActivity {
 
 
             }
-            data = data +"\n";
-
+            //data = data +"\n";
 
         }
+
+        data = data +"\n";
+        //subSection not includes members
+        switch (sectionId)
+        {
+            case 3:
+                //section 3 , subSection 9
+                int subSection = 9;
+                data = data + getStringDataOfMissQuestionBySectionAndSubSection(eventId,sectionId,subSection);
+                break;
+            case 4:
+               // ArrayList<String> voNumbers = databaseAccess.getUniqueVONumbersFromRespondents(eventId,2);
+              //  createDialog(voNumbers.toString());
+
+
+                break;
+            case 5:
+                break;
+            default:
+                break;
+        }
+
+
+
 
         createDialog(data);
 
 
+    }
 
+    String getStringDataOfMissQuestionBySectionAndSubSection(int eventId,int sectionId,int subSectionId)
+    {
+        String data="";
+        ArrayList<SurveyQuestion> surQues = databaseAccess.getSurveyQuestionDataBySectionAndSubSectoin(eventId,sectionId,subSectionId);
+        ArrayList<ActualQuestion> actQues = getActualQuestionDataUsingSectionAndSubSection(sectionId,subSectionId);
+        ArrayList<ActualQuestion> misActQues = getMissingMandatoryQuestionUsingSection(surQues,actQues);
+
+        data = data + getStringDataOfMissQuestionByMonitor(sectionId,subSectionId,misActQues);
+        return data;
 
     }
+
+    String getStringDataOfMissQuestionByMonitor(int secId,int subSecId,ArrayList<ActualQuestion>misQues)
+    {
+        String data = "";
+        data = data + "SectionId: "+secId+"    SubSectionId: "+subSecId+"\n";
+        data = data + "Number of Miss Questions by Monitor: "+misQues.size()+"\n";
+
+        for(ActualQuestion actualQuestion : misQues)
+        {
+            data = data + actualQuestion.getSectionId()+"     "+actualQuestion.getSubSectionId()+"     "+actualQuestion.getQuestionNo()+"\n";
+        }
+
+        return data;
+    }
+    /*
 
     private void callSection(int eventId, int sectionId) {
         ArrayList<OrgMem>orgMems = new ArrayList<>();
@@ -302,7 +350,9 @@ public class MainActivity extends AppCompatActivity {
         createDialog(data);
 
 
-    }
+    }*/
+
+    //Essential function
 
     private String[] getMembersAndOrgInStringFormat(ArrayList<OrgMem>orgMemberList)
     {
@@ -354,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
         return surQuesMemWise;
 
     }
-
+/*
     private void callFirstSection(int eventId,int sectionId,int monitorNo) {
         ArrayList<SurveyQuestion> surveyQuestions = databaseAccess.getSurveyQuestionData(eventId,sectionId,monitorNo);
         showSurveyQuestionData(surveyQuestions);
@@ -364,7 +414,9 @@ public class MainActivity extends AppCompatActivity {
 
         //showMissingMandatoryQuestionUsingSection(surveyQuestions,actualQuestions);
 
-    }
+    }*/
+
+    //Missing check function
 
     private ArrayList<ActualQuestion> getMissingMandatoryQuestionUsingSection(ArrayList<SurveyQuestion>surveyQuestions,ArrayList<ActualQuestion>actualQuestions)   {
         ArrayList<ActualQuestion>mandMissQuesList= new ArrayList<>();
@@ -404,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
         return mandMissQuesList;
 
     }
-
+// just for showing survey question data
     public void showSurveyQuestionData(ArrayList<SurveyQuestion>surveyQuestions)
     {
         String data = "Survey ";
@@ -419,7 +471,7 @@ public class MainActivity extends AppCompatActivity {
         }
         createDialog(data);
     }
-
+//just for showing Question table data
     public void showActualQuestionData(ArrayList<ActualQuestion>actualQuestions)
     {
         String data = "Actual ";
@@ -494,7 +546,7 @@ public class MainActivity extends AppCompatActivity {
 */
 
     }
-
+//dialog creation
     public void createDialog(String data)
     {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -509,6 +561,8 @@ public class MainActivity extends AppCompatActivity {
         builder.create();
         dialog = builder.show();
     }
+
+    //all subSection includes in SectionWiseRespondents
     private class SectionWiseRespondents
     {
         private ArrayList<Respondents> subRespondentList;
