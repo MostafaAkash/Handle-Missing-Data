@@ -62,7 +62,7 @@ public class DatabaseAccess {
         return buffer.toString();
     }
 
-    public ArrayList<SurveyQuestion> getSurveyQuestionDataBySectionAndSubSectoin(int eventId,int sectionId,int subSection)
+    public ArrayList<SurveyQuestion> getSurveyQuestionDataBySectionAndSubSection(int eventId, int sectionId, int subSection)
     {
         cursor = null;
         cursor = database.rawQuery(DatabaseEntry.SURVEY_QUESTION_INFO,new String[]{String.valueOf(eventId),String.valueOf(sectionId),String.valueOf(subSection)});
@@ -109,6 +109,50 @@ public class DatabaseAccess {
         }
         return data;
     }
+
+    public ArrayList<SurveyQuestion> getSurveyQuestionDataForOrganization(int eventId,int sectionId,String voNumbers)
+    {
+        // +DatabaseEntry.SURVEY_ORG_NO +" IN "+first+" AND "
+        cursor = null;
+        cursor = database.rawQuery("select "+DatabaseEntry.SURVEY_EVENT_ID
+                        +","+DatabaseEntry.SURVEY_SECTION_ID
+                        +","+DatabaseEntry.SURVEY_SUBSECTION_ID
+                        +","+DatabaseEntry.SURVEY_ID_QUESTION
+                        +","+DatabaseEntry.SURVEY_ORG_NO
+                        +","+DatabaseEntry.SURVEY_MONITOR_NO +" from "+DatabaseEntry.TABLE_SURVEY+" where ("+DatabaseEntry.SURVEY_EVENT_ID+"=? AND "+
+                        DatabaseEntry.SURVEY_SECTION_ID+"=? AND "
+                        +DatabaseEntry.SURVEY_ORG_NO +" IN "+voNumbers,
+                new String[]{String.valueOf(eventId),String.valueOf(sectionId)});
+
+        int indexOne = cursor.getColumnIndex(DatabaseEntry.SURVEY_EVENT_ID);
+        int indexTwo = cursor.getColumnIndex(DatabaseEntry.SURVEY_SECTION_ID);
+        int indexThree = cursor.getColumnIndex(DatabaseEntry.SURVEY_SUBSECTION_ID);
+        int indexFour = cursor.getColumnIndex(DatabaseEntry.SURVEY_ID_QUESTION);
+        int indexFive = cursor.getColumnIndex(DatabaseEntry.SURVEY_ORG_NO);
+        int indexSix = cursor.getColumnIndex(DatabaseEntry.SURVEY_MONITOR_NO);
+
+        //StringBuffer buffer = new StringBuffer();
+
+        ArrayList<SurveyQuestion>surveyQuestions = new ArrayList<>();
+
+        while (cursor.moveToNext())
+        {
+            int eventIdExtra = cursor.getInt(indexOne);
+            int sectionIdExtra = cursor.getInt(indexTwo);
+            String subSectionId = cursor.getString(indexThree);
+            int quesId = cursor.getInt(indexFour);
+            String orgNo = cursor.getString(indexFive);
+            String monitorNoExtra = cursor.getString(indexSix);
+
+            //  buffer.append(eventId+"  "+sectionId+"  "+subSectionId+"  "+orgNo+"\n");
+            surveyQuestions.add(new SurveyQuestion(eventIdExtra,sectionIdExtra,subSectionId,orgNo,monitorNoExtra,quesId));
+
+        }
+
+        //return buffer.toString();
+        return surveyQuestions;
+    }
+
 
     public ArrayList<SurveyQuestion> getSurveyQuestionDataForRespondentsMember(int eventId,int sectionId,String first,String second)
     {
@@ -319,7 +363,7 @@ public class DatabaseAccess {
                 +","+SURVEY_SUBSECTION_ID
                 +","+SURVEY_ID_QUESTION
                 +","+SURVEY_ORG_NO
-                +","+SURVEY_MONITOR_NO +" from "+TABLE_SURVEY+" where "+SURVEY_EVENT_ID+"=? AND "+SURVEY_SECTION_ID+"=? AND "+SURVEY_MONITOR_NO+"=?";
+                +","+SURVEY_MONITOR_NO +" from "+TABLE_SURVEY+" where "+SURVEY_EVENT_ID+"=? AND "+SURVEY_SECTION_ID+"=? AND "+SURVEY_SUBSECTION_ID+"=?";
 
         private static final String ACTUAL_QUESTION_INFO = "select "+QUESTION_SECTION_NO
                 +","+QUESTION_SUBSECTION_ID
