@@ -305,6 +305,22 @@ public class DatabaseAccess {
         return orgNumbers;
 
     }
+    public ArrayList<String> getUniqueVONumbersFromRespondents(int eventId,int sectionId,int subSectionId)
+    {
+        cursor = null;
+        cursor = database.rawQuery(DatabaseEntry.FIND_UNIQUE_ORGANIZATION_VO_USING_SECTION_SUBSECTION,new String[]{String.valueOf(eventId),String.valueOf(sectionId),String.valueOf(subSectionId)});
+        int indexOne = cursor.getColumnIndex(DatabaseEntry.RESPONDENTS_ORG_NO);
+        ArrayList<String> orgNumbers = new ArrayList<>();
+
+        while (cursor.moveToNext())
+        {
+            String orgNo = cursor.getString(indexOne);
+            orgNumbers.add(orgNo);
+        }
+
+        return orgNumbers;
+
+    }
 
 
 
@@ -399,6 +415,12 @@ public class DatabaseAccess {
                 RESPONDENTS_ORG_NO
                 +" FROM "+TABLE_RESPONDENTS +" WHERE "+RESPONDENTS_EVENT_ID+"=? AND "+RESPONDENTS_SECTION_ID+"=? AND ("+RESPONDENTS_ORG_NO+" IS NOT NULL AND LENGTH(TRIM("
                 +RESPONDENTS_ORG_NO+"))>0)";
+
+        private static final String FIND_UNIQUE_ORGANIZATION_VO_USING_SECTION_SUBSECTION = "SELECT DISTINCT "+
+                RESPONDENTS_ORG_NO
+                +" FROM "+TABLE_RESPONDENTS +" WHERE "+RESPONDENTS_EVENT_ID+"=? AND "+RESPONDENTS_SECTION_ID+"=? AND "+RESPONDENTS_SUBSECTION_ID+"=? AND "+"("+RESPONDENTS_ORG_NO+" IS NOT NULL AND LENGTH(TRIM("
+                +RESPONDENTS_ORG_NO+"))>0)";
+
 
 
     }
