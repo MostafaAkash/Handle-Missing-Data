@@ -38,37 +38,18 @@ public class MainActivity extends AppCompatActivity {
         databaseAccess =DatabaseAccess.getInstance(this);
         databaseAccess.open();
         loadAllActualQuestion();
-        // String data = databaseAccess.getDataFromExternalDatabase();
-        //Toast.makeText(this, data, Toast.LENGTH_SHORT).show();
-        //createDialog(data);
-        //String qData = databaseAccess.getSurveyQuestionData();
-        // createDialog(qData);
-
-        //String qaData = databaseAccess.getActualQuestionData();
-        //createDialog(qaData);
-
-        // showMissingMandatoryQuestionUsingEvent();
-        //()
 
         int eventId,sectionId,monitorNo;
         eventId=1;
-        sectionId=4;
+        sectionId=3;
         goSection(eventId,sectionId);
-
-        //callSection(eventId,sectionId);
-
-        //eventId=1;
-        //sectionId=3;
-
-        //callSection(eventId,sectionId);
-
-
 
         databaseAccess.close();
 
 
     }
 
+    //section wise object initialization
     private void  arrayInitialization()
     {
         for(int i=0;i<5;i++)
@@ -78,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+   // load all question from question table
     private void loadAllActualQuestion() {
         actualQuestionArrayList = databaseAccess.getActualQuestionData();
     }
@@ -94,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return actQuesSecWise;
     }
-
+     //section and subsection wise get questions
     private ArrayList<ActualQuestion> getActualQuestionDataUsingSectionAndSubSection(int sectionId,int subSectionId)
     {
         ArrayList<ActualQuestion>actQuesSecWise = new ArrayList<>();
@@ -178,9 +160,11 @@ public class MainActivity extends AppCompatActivity {
                 data = data + getStringDataOfMissQuestionBySectionAndSubSection(eventId,sectionId,1);
 
                 ArrayList<String> voNumbers = databaseAccess.getUniqueVONumbersFromRespondents(eventId,2);
-                data = data + getOrgNumberInStringFormat(voNumbers);
+                //data = data + getOrgNumberInStringFormat(voNumbers);
+                data = data + "SectionId: "+sectionId+"    SubSectionId: "+2+"\n";
+                data = data+"VO numbers: "+voNumbers.toString()+"\n";
 
-                data  = data + getDataFromVO(eventId,sectionId,2,voNumbers)+"\n";
+                data  = data + getDataFromVO(eventId,sectionId,2,voNumbers);
 
                 data = data + "SectionId: "+sectionId+"    SubSectionId: "+3+"\n";
                 data = data+"VO numbers: "+voNumbers.toString()+"\n";
@@ -311,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
+    // question those are collected from direct vo's
     private ArrayList<SurveyQuestion> getSpecificVOSurveyQuestion(String voNumber, ArrayList<SurveyQuestion> surveyQuestionArrayList) {
         ArrayList<SurveyQuestion> surveyQuestions = new ArrayList<>();
         for(SurveyQuestion surveyQuestion: surveyQuestionArrayList)
@@ -325,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
         return surveyQuestions;
     }
 
+    // direct missing questions by monitor
     String getStringDataOfMissQuestionBySectionAndSubSection(int eventId,int sectionId,int subSectionId)
     {
         String data="";
@@ -340,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
         return data;
 
     }
-
+    //string formatted of missing questions
     String getStringDataOfMissQuestionByMonitor(int secId,int subSecId,ArrayList<ActualQuestion>misQues)
     {
         String data = "";
@@ -366,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
         //showSurveyQuestionData(secFourSubTwo);
 
         ArrayList<ActualQuestion>actQuesSecSubSecWise = getActualQuestionDataUsingSectionAndSubSection(sectionId,subSectionId);
-        data = data +"\n";
+        //data = data +"\n";
         for(int i=0;i<voNumbers.size();i++)
         {
             ArrayList<SurveyQuestion> voAnswered = getSpecificVOSurveyQuestion(voNumbers.get(i),subSecSurQues);
@@ -380,7 +365,10 @@ public class MainActivity extends AppCompatActivity {
                 data = data + misQuestion.getSectionId()+"     "+misQuestion.getSubSectionId()+"     "+misQuestion.getQuestionNo()+"\n";
             }
             sectionArrayList.add(new SubSection(subSectionId,0,0,misQues.size(),"VO"));
-            data = data +"\n";
+            if(misQues.size() !=0)
+            {
+                data = data +"\n";
+            }
 
         }
         sectionReports[sectionId-1].addSubList(sectionArrayList);
